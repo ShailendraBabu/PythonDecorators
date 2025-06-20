@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Decorators: An Interactive Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #001219; /* Overall dark background */
+            color: #94D2BD; /* Default text color for header/footer */
+        }
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm; /* A4 margins */
+            margin: 30px auto; /* Center pages and add space between them */
+            background-color: #001219; /* Consistent dark background for the A4 content pages */
+            box-shadow: 0 0 15px rgba(0,0,0,0.4);
+            color: #94D2BD; /* Light text color for content on dark pages */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box; /* Include padding in width/height */
+            position: relative; /* For containing positioned elements */
+        }
+        .card {
+            background-color: #002A36; /* Slightly lighter background for cards on dark page */
+            border: 1px solid #0A9396;
+            color: #94D2BD; /* Text inside cards */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            page-break-inside: avoid; /* Prevent cards from breaking */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px; /* Constrain chart width within A4 page */
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px; /* Adjusted height for A4 page content */
+            max-height: 350px;
+            page-break-inside: avoid; /* Prevent charts from breaking across pages */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+        .flow-box {
+            border: 2px solid #0A9396;
+            background-color: #005F73;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            page-break-inside: avoid;
+        }
+        .flow-arrow {
+            color: #94D2BD;
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .code-block {
+            background-color: #001A22; /* Darker background for code blocks on dark page */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: monospace;
+            border: 1px solid #005F73;
+            color: #94D2BD; /* Code text color */
+            page-break-inside: avoid;
+        }
+        /* Color palette */
+        .text-accent-light { color: #E9D8A6; } 
+        .text-accent-medium { color: #EE9B00; }
+        .text-accent-dark { color: #CA6702; }
+        .bg-accent-dark { background-color: #CA6702; }
+        .border-accent-dark { border-color: #CA6702; }
+        .text-green-400 { color: #94D2BD; } /* Green for advantages */
+        .border-green-500 { border-color: #0A9396; }
+        .bg-green-900 { background-color: #005F73; }
+        .text-red-400 { color: #CA6702; } /* Red for disadvantages */
+        .border-red-500 { border-color: #CA6702; }
+        .bg-red-900 { background-color: #CA6702; }
+        .text-white { color: white; } /* Ensure white text still stands out on dark accents */
+        .text-gray-200 { color: #D1D5DB; } /* Lighter gray for subtext in flow-boxes */
+        .text-gray-300 { color: #D1D5DB; }
+        .text-gray-400 { color: #9CA3AF; } /* Footer text */
+
+        @media print {
+            body {
+                background: none;
+                margin: 0;
+                padding: 0;
+            }
+            .a4-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 20mm;
+                /* Ensure A4 size is maintained for printing */
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always; /* Force page break after each A4 page */
+                background: white; /* Force white background for print */
+                color: black; /* Force black text for print */
+            }
+            /* Adjust elements for print on white background */
+            .a4-page .card, .a4-page .flow-box, .a4-page .code-block {
+                background: #F0F0F0; /* Lighter background for print cards/boxes */
+                color: #001219; /* Dark text for print */
+                border-color: #A0A0A0; /* Lighter borders for print */
+            }
+            .a4-page .flow-box {
+                background-color: #D1D5DB; /* Lighter background for flow boxes on print */
+                color: #001219;
+                border-color: #A0A0A0;
+            }
+            .a4-page .text-white { color: black; } /* Adjust specific white texts to black for print */
+            .a4-page .text-accent-light,
+            .a4-page .text-accent-medium,
+            .a4-page .text-accent-dark { color: #333; } /* Darken accents for print */
+            .a4-page .text-green-400 { color: #0A9396; } /* Maintain original green for print if visible */
+            .a4-page .text-red-400 { color: #CA6702; } /* Maintain original red for print if visible */
+            .a4-page .text-gray-200, .a4-page .text-gray-300 { color: #4B5563; } /* Darken grays for print */
+
+            .header, .footer {
+                display: none; /* Hide header/footer from print */
+            }
+            .code-block, .chart-container, .flow-box, .card {
+                page-break-inside: avoid; /* Prevent these elements from breaking across pages */
+            }
+            /* Chart.js specific print adjustments */
+            canvas {
+                filter: invert(1); /* Invert chart colors for dark-on-light print */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="text-center p-8 md:p-12 border-b-2 border-accent-dark" style="background: linear-gradient(to bottom, #002A36, #001219);">
+        <h1 class="text-4xl md:text-6xl font-black text-white tracking-tighter">Python Decorators</h1>
+        <p class="mt-4 text-xl md:text-2xl text-accent-light max-w-3xl mx-auto">A visual guide to enhancing your functions without modifying their code.</p>
+    </header>
+
+    <main class="document-container">
+
+        <!-- Page 1 -->
+        <div class="a4-page">
+            <section id="what-are-decorators" class="w-full text-center">
+                <h2 class="text-3xl font-bold mb-4">What is a Decorator?</h2>
+                <p class="text-lg mb-8 max-w-2xl mx-auto">A decorator is a function that takes another function as an argument, adds some functionality to it, and returns the modified function. Think of it like wrapping a gift: the gift itself doesn't change, but it gets a new, enhanced exterior.</p>
+                
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
+                    <div class="flow-box">
+                        <p class="font-bold">Original Function</p>
+                        <p class="text-sm text-gray-200">e.g., `say_hello()`</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="flow-box bg-accent-dark border-accent-dark text-white">
+                        <p class="font-bold">Decorator</p>
+                        <p class="text-sm text-gray-200">Adds new logic</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="flow-box">
+                        <p class="font-bold">Enhanced Function</p>
+                        <p class="text-sm text-gray-200">Ready to use!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="anatomy" class="w-full mt-12 text-center">
+                 <h2 class="text-3xl font-bold mb-8">Anatomy of a Decorator</h2>
+                 <div class="flex flex-col items-center space-y-6">
+
+                    <!-- Step 1: Outer Function -->
+                    <div class="p-6 card rounded-lg w-full max-w-sm">
+                        <h4 class="font-bold text-accent-light text-xl">1. The Outer Function (Decorator)</h4>
+                        <p class="text-sm mt-2">Takes the original function (`func`) as its argument.</p>
+                    </div>
+
+                    <!-- Arrow 1 -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-1 h-8 bg-accent-medium rounded"></div>
+                        <div class="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-accent-medium"></div>
+                    </div>
+
+                    <!-- Step 2: Inner (Wrapper) Function -->
+                    <div class="p-6 card rounded-lg w-full max-w-sm">
+                        <h4 class="font-bold text-accent-light text-xl">2. The Inner (Wrapper) Function</h4>
+                        <p class="text-sm mt-2">Defined inside the outer function. It "wraps" the original function and contains the new logic (before/after).</p>
+                    </div>
+
+                    <!-- Arrow 2 -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-1 h-8 bg-accent-medium rounded"></div>
+                        <div class="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-accent-medium"></div>
+                    </div>
+
+                    <!-- Step 3: Return the Wrapper -->
+                    <div class="p-6 card rounded-lg w-full max-w-sm">
+                        <h4 class="font-bold text-accent-light text-xl">3. Return the Wrapper</h4>
+                        <p class="text-sm mt-2">The outer decorator function returns this wrapper function, which then replaces the original function.</p>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <!-- Page 2 -->
+        <div class="a4-page">
+            <section id="advantages-disadvantages" class="w-full">
+                <h2 class="text-3xl font-bold mb-8 text-center">Advantages & Disadvantages</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card p-6 rounded-lg shadow-xl border-green-500">
+                        <h3 class="text-2xl font-bold text-green-400 mb-4">✅ Advantages</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><span class="font-bold">Code Reusability:</span> Apply generic functionality across multiple functions easily.</li>
+                            <li><span class="font-bold">Separation of Concerns:</span> Keep core logic clean by externalizing cross-cutting features.</li>
+                            <li><span class="font-bold">Readability:</span> The `@` syntax clearly indicates function modification.</li>
+                            <li><span class="font-bold">Modularity:</span> Simple to add, remove, or change extra features without altering original code.</li>
+                            <li><span class="font-bold">Maintainability:</span> Centralize common functionality in one place for easier updates.</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6 rounded-lg shadow-xl border-red-500">
+                        <h3 class="text-2xl font-bold text-red-400 mb-4">❌ Disadvantages</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><span class="font-bold">Debugging Complexity:</span> Can make stack traces longer and harder to follow.</li>
+                            <li><span class="font-bold">Metadata Loss:</span> By default, original function's name/docstrings are hidden (requires `functools.wraps`).</li>
+                            <li><span class="font-bold">Overuse Obscures Logic:</span> Too many decorators can make a function's true behavior less clear.</li>
+                            <li><span class="font-bold">Slight Performance Overhead:</span> Adds an extra function call layer, typically negligible.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="use-cases-intro" class="w-full mt-12 text-center">
+                <h2 class="text-3xl font-bold mb-4">Common Use Cases</h2>
+                <p class="text-lg mb-8 max-w-2xl mx-auto">Decorators excel at adding widely applicable functionalities that don't directly relate to a function's core purpose.</p>
+            </section>
+
+            <section class="w-full grid grid-cols-1 gap-8">
+                <div class="card p-6 rounded-lg shadow-xl">
+                    <h3 class="text-2xl font-bold text-accent-light mb-3">🕒 Timing Execution</h3>
+                    <p class="mb-4">Automatically measure how long a function takes to run. Invaluable for identifying performance bottlenecks in your code.</p>
+                    <div class="code-block text-sm">
+<pre><code class="language-python">
+@timer
+def process_large_file(file):
+    # ... complex logic ...
+    return "Done"
+
+# Output:
+# TIMING: process_large_file took 2.3451 seconds.
+</code></pre>
+                    </div>
+                </div>
+
+                <div class="card p-6 rounded-lg shadow-xl">
+                    <h3 class="text-2xl font-bold text-accent-light mb-3">📝 Logging Calls</h3>
+                    <p class="mb-4">Create a log entry every time a function is called, including its arguments and return value. Perfect for debugging and auditing.</p>
+                    <div class="code-block text-sm">
+<pre><code class="language-python">
+@log_calls
+def calculate_interest(principal, rate):
+    # ... calculation ...
+    return result
+
+# Output:
+# LOG: Calling calculate_interest with...
+</code></pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Page 3 -->
+        <div class="a4-page">
+            <section class="w-full grid grid-cols-1 gap-8">
+                <div class="card p-6 rounded-lg shadow-xl">
+                    <h3 class="text-2xl font-bold text-accent-light mb-3">💾 Caching Results</h3>
+                    <p class="mb-4">Store the results of expensive function calls. If called again with the same arguments, the cached result is returned instantly.</p>
+                    <div class="code-block text-sm">
+<pre><code class="language-python">
+@cache_result
+def fetch_user_data(user_id):
+    # ... database query ...
+    return user_data
+
+fetch_user_data(1) # Fetches and caches
+fetch_user_data(1) # Returns from cache
+</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card p-6 rounded-lg shadow-xl w-full">
+                     <h3 class="text-2xl font-bold text-white mb-4 text-center">Comparing Decorator Impact</h3>
+                     <p class="mb-6 text-center max-w-2xl mx-auto text-base">While powerful, decorators add a layer of execution. This chart shows a hypothetical comparison of the performance overhead for different types of decorators on a fast function.</p>
+                     <div class="chart-container">
+                        <canvas id="useCaseChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practical-example" class="w-full mt-12 text-center">
+                <h2 class="text-3xl font-bold mb-4">Practical Example: User Authentication</h2>
+                <p class="text-lg mb-8 max-w-2xl mx-auto">Decorators are ideal for implementing access control, ensuring that only authorized users can execute certain functions, commonly seen in web frameworks.</p>
+
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="flow-box">
+                        <p class="font-bold">User Request</p>
+                        <p class="text-sm text-gray-200">e.g., Access Admin Page</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="flow-box bg-accent-dark border-accent-dark text-white">
+                        <p class="font-bold">`@require_login` Decorator</p>
+                        <p class="text-sm text-gray-200">Checks session/token</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="flex flex-col space-y-4">
+                        <div class="flow-box bg-green-900 border-green-500">
+                            <p class="font-bold">If Authenticated:</p>
+                            <p class="text-sm text-gray-200">Run Original Function</p>
+                        </div>
+                        <div class="flow-box bg-red-900 border-red-500">
+                            <p class="font-bold">If Not Authenticated:</p>
+                            <p class="text-sm text-gray-200">Redirect/Deny Access</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Page 4 -->
+        <div class="a4-page">
+            <h3 class="text-2xl font-bold text-accent-light mb-4 text-center">Python Code Example: Authentication</h3>
+            <div class="code-block text-sm text-left w-full max-w-2xl mx-auto">
+<pre><code class="language-python">
+# Simulate a simple user session/login status
+_IS_LOGGED_IN = False
+
+def require_login(func):
+    """
+    A decorator that checks if a user is logged in before allowing function execution.
+    """
+    def wrapper(*args, **kwargs):
+        if not _IS_LOGGED_IN:
+            print("ACCESS DENIED: Please log in to view this page.")
+            return None # Prevent function from running
+        print("Access granted!")
+        return func(*args, **kwargs)
+    return wrapper
+
+@require_login
+def view_secret_data():
+    """Function to display sensitive information."""
+    print("Welcome! Here's your secret data: XYZ-123-ABC.")
+
+print("--- Attempting to view secret data (Not logged in) ---")
+view_secret_data() # This will be denied
+
+_IS_LOGGED_IN = True # Simulate user logging in
+
+print("\n--- Attempting to view secret data (Logged in) ---")
+view_secret_data() # This will be granted
+
+# Output:
+# --- Attempting to view secret data (Not logged in) ---
+# ACCESS DENIED: Please log in to view this page.
+#
+# --- Attempting to view secret data (Logged in) ---
+# Access granted!
+# Welcome! Here's your secret data: XYZ-123-ABC.
+</code></pre>
+            </div>
+            <p class="text-sm mt-4 text-gray-300 max-w-2xl mx-auto text-center">This example shows how `@require_login` intercepts the call to `view_secret_data`, performing an authentication check before the actual function logic executes, effectively controlling access.</p>
+            
+            <section id="tradeoffs" class="w-full mt-12">
+                <h2 class="text-3xl font-bold mb-4 text-center">The Trade-Offs</h2>
+                <p class="text-lg text-center mb-8 max-w-2xl mx-auto">Decorators offer great power but come with considerations. This chart visualizes the balance between code with and without heavy decorator use across several metrics.</p>
+                <div class="chart-container">
+                    <canvas id="tradeoffChart"></canvas>
+                </div>
+                <div class="flex justify-around mt-4 text-xs text-gray-300">
+                    <p><span class="inline-block w-3 h-3 rounded-full mr-2 bg-accent-medium"></span> With Decorators</p>
+                    <p><span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: #0A9396;"></span> Without Decorators</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Page 5 -->
+        <div class="a4-page">
+            <section id="when-to-use" class="w-full text-center">
+                <h2 class="text-3xl font-bold mb-8">Should I Use a Decorator?</h2>
+                <div class="flex flex-col items-center space-y-6">
+                    <div class="flow-box p-6 w-full max-w-md">
+                        <p class="font-bold text-xl">Do you need to add functionality to an existing function without changing its source code?</p>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="flow-arrow text-3xl">&darr;</div>
+                    </div>
+                    <div class="flow-box p-6 bg-accent-dark border-accent-dark text-white w-full max-w-md">
+                        <p class="font-bold text-xl">Is this functionality a generic, "cross-cutting" concern like logging, timing, or authentication?</p>
+                    </div>
+                    <div class="flex justify-center space-x-16 w-full">
+                        <div class="text-center">
+                            <p class="font-bold text-green-400 text-lg">YES</p>
+                            <div class="flow-arrow text-3xl">&darr;</div>
+                            <div class="p-4 rounded-lg bg-green-900 border-2 border-green-500 text-white w-48">
+                                <p class="font-bold text-lg">Use a Decorator!</p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="font-bold text-red-400 text-lg">NO</p>
+                            <div class="flow-arrow text-3xl">&darr;</div>
+                            <div class="p-4 rounded-lg bg-red-900 border-2 border-red-500 text-white w-48">
+                                <p class="font-bold text-lg">Consider a helper function or class instead.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="text-center p-6 mt-12" style="background-color: #001A22;">
+        <p class="text-sm text-gray-400">Infographic created with Python decorators concepts.</p>
+    </footer>
+
+    <script>
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            }
+            return label;
+        };
+
+        const wrapLabel = (label, maxLength = 16) => {
+            if (label.length <= maxLength) {
+                return label;
+            }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + (currentLine ? ' ' : '') + word).length > maxLength && currentLine.length > 0) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        };
+
+        const useCaseCtx = document.getElementById('useCaseChart');
+        if (useCaseCtx) {
+            new Chart(useCaseCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Base Function', 'With Logging', 'With Timing', 'With Caching (First Run)'],
+                    datasets: [{
+                        label: 'Execution Time (ms)',
+                        data: [0.5, 0.7, 0.8, 5.0],
+                        backgroundColor: ['#0A9396', '#94D2BD', '#E9D8A6', '#EE9B00'],
+                        borderColor: '#005F73',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                           display: false
+                        },
+                        tooltip: { callbacks: { title: tooltipTitleCallback } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(148, 210, 189, 0.2)' }, /* Lighter grid for dark background */
+                            ticks: { color: '#94D2BD' } /* Light ticks */
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94D2BD' } /* Light ticks */
+                        }
+                    }
+                }
+            });
+        }
+
+        const tradeoffCtx = document.getElementById('tradeoffChart');
+        if (tradeoffCtx) {
+            const originalLabels = ['Reusability', 'Readability', 'Maintainability', 'Debugging Ease', 'Initial Performance'];
+            const wrappedLabels = originalLabels.map(label => wrapLabel(label));
+        
+            new Chart(tradeoffCtx, {
+                type: 'radar',
+                data: {
+                    labels: wrappedLabels,
+                    datasets: [
+                        {
+                            label: 'With Decorators',
+                            data: [9, 6, 8, 4, 7],
+                            fill: true,
+                            backgroundColor: 'rgba(238, 155, 0, 0.2)',
+                            borderColor: '#EE9B00',
+                            pointBackgroundColor: '#EE9B00',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#EE9B00'
+                        },
+                        {
+                            label: 'Without Decorators',
+                            data: [4, 8, 5, 9, 9],
+                            fill: true,
+                            backgroundColor: 'rgba(10, 147, 150, 0.2)',
+                            borderColor: '#0A9396',
+                            pointBackgroundColor: '#0A9396',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#0A9396'
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        tooltip: { callbacks: { title: tooltipTitleCallback } },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(148, 210, 189, 0.3)' }, /* Lighter lines for dark background */
+                            grid: { color: 'rgba(148, 210, 189, 0.3)' },
+                            pointLabels: { color: '#E9D8A6', font: { size: 12 } }, /* Light point labels */
+                            ticks: {
+                                color: '#94D2BD', /* Light ticks */
+                                backdropColor: 'rgba(0, 18, 25, 0.8)', /* Dark backdrop for ticks */
+                                stepSize: 2
+                            },
+                             min: 0,
+                             max: 10
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
